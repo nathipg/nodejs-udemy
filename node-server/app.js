@@ -1,17 +1,21 @@
 const http = require('http');
+const fs = require('fs');
 
 const server = http.createServer((req, res) => {
   const url = req.url;
+  const method = req.method;
 
-  res.setHeader('Content-Type', 'text/html');
+  if(method === 'GET') {
+    res.setHeader('Content-Type', 'text/html');
 
-  res.write(`
-    <html>
-      <head>
-        <title>My First Page</title>
-      </head>
-      <body>
-  `);
+    res.write(`
+      <html>
+        <head>
+          <title>My First Page</title>
+        </head>
+        <body>
+    `);
+  }
 
   if(url === '/') {
     res.write(`
@@ -20,12 +24,18 @@ const server = http.createServer((req, res) => {
         <button type="submit">Submit</button>
       </form>
     `);
+  } else if(url === '/message' && method === 'POST') {
+    fs.writeFileSync('message.txt', 'DUMMY');
+    res.statusCode = 302;
+    res.setHeader('Location', '/');
   }
 
-  res.write(`
-      </body>
-    </html>
-  `);
+  if(method === 'GET') {
+    res.write(`
+        </body>
+      </html>
+    `);
+  }
 
   res.end();
 });
