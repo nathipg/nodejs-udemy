@@ -5,6 +5,7 @@ const server = http.createServer((req, res) => {
   const url = req.url;
   const method = req.method;
 
+
   if(method === 'GET') {
     res.setHeader('Content-Type', 'text/html');
 
@@ -25,17 +26,27 @@ const server = http.createServer((req, res) => {
       </form>
     `);
   } else if(url === '/message' && method === 'POST') {
-    fs.writeFileSync('message.txt', 'DUMMY');
+    const body = [];
+
+    req.on('data', chunk => {
+      body.push(chunk);
+    });
+
+    req.on('end', () => {
+      const parsedBody = Buffer.concat(body).toString();
+      const message = parsedBody.split('=')[1];
+      fs.writeFileSync('message.txt', message);
+    });
+
     res.statusCode = 302;
     res.setHeader('Location', '/');
+    return res.end();
   }
 
-  if(method === 'GET') {
-    res.write(`
-        </body>
-      </html>
-    `);
-  }
+  res.write(`
+      </body>
+    </html>
+  `);
 
   res.end();
 });
