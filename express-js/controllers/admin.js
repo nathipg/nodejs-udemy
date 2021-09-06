@@ -25,22 +25,25 @@ exports.postAddProduct = (req, res, next) => {
   const description = req.body.description;
 
   const product = new Product(null, title, imgUrl, price, description);
-  product.save();
-  
-  res.redirect('/admin/products');
+  product
+    .save()
+    .then(() => {
+      res.redirect('/admin/products');
+    })
+    .catch(err => console.log(err));
 };
 
 exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit === 'true';
 
-  if(!editMode) {
+  if (!editMode) {
     return res.redirect('/');
   }
 
   const productId = req.params.productId;
 
   Product.findById(productId, product => {
-    if(!product) {
+    if (!product) {
       return res.redirect('/');
     }
 
