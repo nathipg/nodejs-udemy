@@ -2,8 +2,8 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
-const mongoConnect = require('./util/database').mongoConnect;
 const User = require('./models/user');
 
 const app = express();
@@ -31,6 +31,11 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(errorRoutes);
 
-mongoConnect(() => {
-  app.listen(3000);
-});
+mongoose
+  .connect(
+    'mongodb+srv://root:root@cluster0.gqup1.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+  )
+  .then(result => {
+    app.listen(3000);
+  })
+  .catch(err => console.error(err));
