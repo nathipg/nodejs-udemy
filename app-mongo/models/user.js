@@ -89,7 +89,7 @@ class User {
         const order = {
           items: products,
           user: {
-            _id: new mongodb.ObjectId(this._id),
+            _id: new mongodb.ObjectId(this.id),
             name: this.name,
           },
         };
@@ -108,7 +108,10 @@ class User {
 
   getOrders() {
     const db = getDb();
-    return db.collection('orders');
+    return db
+      .collection('orders')
+      .find({ 'user._id': new mongodb.ObjectId(this.id) })
+      .toArray();
   }
 
   static findById(id) {
