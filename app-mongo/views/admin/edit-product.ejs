@@ -10,7 +10,7 @@
 <main>
   <form class="product-form" action="<%= editing ? '/admin/edit-product' : '/admin/add-product' %>" method="POST">
     <% if(editing) { %>
-    <input type="hidden" name="id" value="<%= editing ? product.id : '' %>">
+    <input type="hidden" name="id" value="<%= editing ? product._id : '' %>">
     <% } %>
 
     <div class="form-control">
