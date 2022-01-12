@@ -93,7 +93,9 @@ exports.postOrder = async (req, res, next) => {
     .then(user => {
       const products = user.cart.items.map(i => ({
         quantity: i.quantity,
-        product: i.productId,
+        product: {
+          ...i.productId._doc,
+        },
       }));
 
       const order = new Order({
