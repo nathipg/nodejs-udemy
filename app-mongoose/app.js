@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const session = require('express-session');
 
 const User = require('./models/user');
 
@@ -18,6 +19,9 @@ const errorRoutes = require('./routes/error'); // Must be the last one
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(
+  session({ secret: 'my secret', resave: false, saveUninitialized: false })
+);
 
 app.use((req, res, next) => {
   User.findById('61defff33b65d0f7354338cc')
@@ -39,7 +43,7 @@ mongoose
   )
   .then(result => {
     User.findOne().then(user => {
-      if(!user) {
+      if (!user) {
         const user = new User({
           name: 'Pissuti',
           email: 'pissuti@email.com',
