@@ -32,6 +32,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: store,
+    // Can config cookie options here
   })
 );
 
