@@ -41,11 +41,11 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then(userDoc => {
       if (userDoc) {
-        return res.redirect('/signup');
+        throw Error('User already exists');
       }
       
       if(password !== confirmPassword) {
-        return res.redirect('/signup');
+        throw Error('Confirm password and password are different');
       }
 
       return bcrypt.hash(password, 12);
@@ -62,7 +62,10 @@ exports.postSignup = (req, res, next) => {
     .then(result => {
       res.redirect('/login');
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      res.redirect('/signup');
+    });
 };
 
 exports.postLogout = (req, res, next) => {
