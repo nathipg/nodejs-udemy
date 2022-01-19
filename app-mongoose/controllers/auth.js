@@ -156,7 +156,7 @@ exports.postReset = (req, res, next) => {
 
     User.findOne({ email: req.body.email })
       .then(user => {
-        if(!user) {
+        if (!user) {
           throw new Error('User not found');
         }
 
@@ -182,5 +182,39 @@ exports.postReset = (req, res, next) => {
         req.flash('error', err.message);
         res.redirect('/reset');
       });
+  });
+};
+
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token;
+  User.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() },
+  }).then(user => {
+    if (!user) {
+      throw new Error('Reset link is expired');
+    }
+
+    let message = req.flash('error');
+    if (message.length > 0) {
+      message = message[0];
+    } else {
+      message = null;
+    }
+
+    res.render('auth/new-password', {
+      path: '/new-password',
+      pageTitle: 'New Password',
+      errorMessage: null,
+      userId: user._id.toString(),
+    });
+  }).catch(err => {
+    console.log(err);
+    res.render('auth/new-password', {
+      path: '/new-password',
+      pageTitle: 'New Password',
+      errorMessage: err.message,
+      userId: 0,
+    });
   });
 };
