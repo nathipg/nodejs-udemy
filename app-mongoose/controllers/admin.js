@@ -85,7 +85,7 @@ exports.postEditProduct = (req, res, next) => {
         throw Error('Product not found');
       }
 
-      if(product.userId !== req.user._id) {
+      if(product.userId.toString() !== req.user._id.toString()) {
         throw Error('Invalid action');
       }
 
