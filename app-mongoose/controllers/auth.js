@@ -207,6 +207,7 @@ exports.getNewPassword = (req, res, next) => {
       pageTitle: 'New Password',
       errorMessage: null,
       userId: user._id.toString(),
+      passwordToken: token,
     });
   }).catch(err => {
     console.log(err);
@@ -215,6 +216,39 @@ exports.getNewPassword = (req, res, next) => {
       pageTitle: 'New Password',
       errorMessage: err.message,
       userId: 0,
+      passwordToken: 0,
     });
+  });
+};
+
+exports.postNewPassword = (req, res, next) => {
+  const newPassword = req.body.password;
+  const userId = req.body.userId;
+  const passwordToken = req.body.passwordToken;
+  let user;
+
+  User.findOne({
+    resetToken: passwordToken,
+    resetTokenExpiration: { $gt: Date.now() },
+    _id: userId,
+  }).then(dbUser => {
+    if (!dbUser) {
+      throw new Error('Reset link is expired');
+    }
+
+    user = dbUser;
+
+    return bcrypt.hash(newPassword, 12);
+  }).then(hashedPassword => {
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpiration = undefined;
+    return user.save();
+  }).then(result => {
+    res.redirect('/login');
+  }).catch(err => {
+    console.log(err);
+    req.flash('error', err.message);
+    res.redirect(`/reset/${passwordToken}`);
   });
 };
