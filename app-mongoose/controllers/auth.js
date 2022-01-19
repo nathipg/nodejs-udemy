@@ -22,15 +22,34 @@ exports.getSignup = (req, res, next) => {
 
 exports.postLogin = (req, res, next) => {
   // res.setHeader('Set-Cookie', 'loggedIn=true; HttpOnly'); // Expire, Max-Age, Secure, HttpOnly, etc
-  User.findById('61defff33b65d0f7354338cc')
-    .then(user => {
+  const email = req.body.email;
+  const password = req.body.password;
+  let user;
+
+  User.findOne({ email: email })
+    .then(dbUser => {
+      if(!dbUser) {
+        throw Error('User not found');
+      }
+
+      user = dbUser;
+
+      return bcrypt.compare(password, user.password);
+    }).then(result => {
+      if(!result) {
+        throw Error('Wrong password');
+      }
+
       req.session.isLoggedIn = true;
       req.session.user = user;
       req.session.save(err => {
         res.redirect('/');
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      res.redirect('/login');
+    });
 };
 
 exports.postSignup = (req, res, next) => {
