@@ -20,9 +20,17 @@ exports.getLogin = (req, res, next) => {
 };
 
 exports.getSignup = (req, res, next) => {
+  let message = req.flash('error');
+  if(message.length > 0) {
+    message = message[0];
+  } else {
+    message = null;
+  }
+
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
+    errorMessage: message,
   });
 };
 
@@ -43,7 +51,7 @@ exports.postLogin = (req, res, next) => {
       return bcrypt.compare(password, user.password);
     }).then(result => {
       if(!result) {
-        throw Error('Wrong password');
+        throw Error('Invalid password');
       }
 
       req.session.isLoggedIn = true;
@@ -90,6 +98,7 @@ exports.postSignup = (req, res, next) => {
     })
     .catch(err => {
       console.log(err);
+      req.flash('error', err.message);
       res.redirect('/signup');
     });
 };
