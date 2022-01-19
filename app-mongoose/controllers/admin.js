@@ -81,6 +81,14 @@ exports.postEditProduct = (req, res, next) => {
 
   Product.findById(id)
     .then(product => {
+      if(!product) {
+        throw Error('Product not found');
+      }
+
+      if(product.userId !== req.user._id) {
+        throw Error('Invalid action');
+      }
+
       product.title = title;
       product.imgUrl = imgUrl;
       product.price = price;
@@ -92,13 +100,17 @@ exports.postEditProduct = (req, res, next) => {
     })
     .catch(err => {
       console.log(err);
+      req.flash('error', err.message);
       res.redirect('/admin/products');
     });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
   const productId = req.body.id;
-  Product.findByIdAndRemove(productId)
+  Product.deleteOne({
+    _id: productId,
+    userId: req.user._id,
+  })
     .then(() => {
       res.redirect('/admin/products');
     })
