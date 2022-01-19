@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 
@@ -16,7 +18,7 @@ exports.getLogin = (req, res, next) => {
   // const isLoggedIn = req.get('Cookie').split(';')[0].trim().split('=')[1] === 'true';
 
   let message = req.flash('error');
-  if(message.length > 0) {
+  if (message.length > 0) {
     message = message[0];
   } else {
     message = null;
@@ -31,7 +33,7 @@ exports.getLogin = (req, res, next) => {
 
 exports.getSignup = (req, res, next) => {
   let message = req.flash('error');
-  if(message.length > 0) {
+  if (message.length > 0) {
     message = message[0];
   } else {
     message = null;
@@ -52,15 +54,16 @@ exports.postLogin = (req, res, next) => {
 
   User.findOne({ email: email })
     .then(dbUser => {
-      if(!dbUser) {
+      if (!dbUser) {
         throw Error('User not found');
       }
 
       user = dbUser;
 
       return bcrypt.compare(password, user.password);
-    }).then(result => {
-      if(!result) {
+    })
+    .then(result => {
+      if (!result) {
         throw Error('Invalid password');
       }
 
@@ -87,8 +90,8 @@ exports.postSignup = (req, res, next) => {
       if (userDoc) {
         throw Error('User already exists');
       }
-      
-      if(password !== confirmPassword) {
+
+      if (password !== confirmPassword) {
         throw Error('Confirm password and password are different');
       }
 
@@ -109,7 +112,7 @@ exports.postSignup = (req, res, next) => {
         to: email,
         from: 'nathaliapissuti@gmail.com',
         subject: 'Signup succeded',
-        html: 'Alright!'
+        html: 'Alright!',
       });
     })
     .catch(err => {
@@ -128,7 +131,7 @@ exports.postLogout = (req, res, next) => {
 
 exports.getReset = (req, res, next) => {
   let message = req.flash('error');
-  if(message.length > 0) {
+  if (message.length > 0) {
     message = message[0];
   } else {
     message = null;
@@ -138,5 +141,46 @@ exports.getReset = (req, res, next) => {
     path: '/reset',
     pageTitle: 'Reset',
     errorMessage: message,
+  });
+};
+
+exports.postReset = (req, res, next) => {
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      console.log(err);
+      req.flash('error', 'Could not reset the password');
+      return res.redirect('/reset');
+    }
+
+    const token = buffer.toString('hex');
+
+    User.findOne({ email: req.body.email })
+      .then(user => {
+        if(!user) {
+          throw new Error('User not found');
+        }
+
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000;
+        return user.save();
+      })
+      .then(result => {
+        res.redirect('/');
+
+        return transporter.sendMail({
+          to: req.body.email,
+          from: 'nathaliapissuti@gmail.com',
+          subject: 'Password reset',
+          html: `
+            <p>You requested a password reset</p>
+            <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password</p>
+          `,
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        req.flash('error', err.message);
+        res.redirect('/reset');
+      });
   });
 };
