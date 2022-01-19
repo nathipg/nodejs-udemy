@@ -1,7 +1,7 @@
 const Product = require('../models/product');
 
 exports.getProducts = (req, res, next) => {
-  Product.find()
+  Product.find({ userId: req.user._id })
     // .select('title price -_id')
     // .populate('userId', 'name')
     .then(products => {
