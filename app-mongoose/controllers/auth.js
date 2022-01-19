@@ -8,6 +8,7 @@ exports.getLogin = (req, res, next) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
+    errorMessage: req.flash('error'),
   });
 };
 
@@ -46,6 +47,7 @@ exports.postLogin = (req, res, next) => {
     })
     .catch(err => {
       console.log(err);
+      req.flash('error', err.message);
       res.redirect('/login');
     });
 };
