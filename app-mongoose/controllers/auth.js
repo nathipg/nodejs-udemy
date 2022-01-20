@@ -101,10 +101,6 @@ exports.postSignup = (req, res, next) => {
         throw new Error('User already exists');
       }
 
-      if (password !== confirmPassword) {
-        throw new Error('Confirm password and password are different');
-      }
-
       return bcrypt.hash(password, 12);
     })
     .then(hashedPassword => {
