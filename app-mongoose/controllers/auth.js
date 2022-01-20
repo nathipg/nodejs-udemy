@@ -84,10 +84,9 @@ exports.postLogin = (req, res, next) => {
 exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
   const errors = validationResult(req);
 
-  if(!errors.isEmpty()) {
+  if (!errors.isEmpty()) {
     return res.status(422).render('auth/signup', {
       path: '/signup',
       pageTitle: 'Signup',
@@ -95,14 +94,8 @@ exports.postSignup = (req, res, next) => {
     });
   }
 
-  User.findOne({ email: email })
-    .then(userDoc => {
-      if (userDoc) {
-        throw new Error('User already exists');
-      }
-
-      return bcrypt.hash(password, 12);
-    })
+  bcrypt
+    .hash(password, 12)
     .then(hashedPassword => {
       const user = new User({
         email,
@@ -196,35 +189,37 @@ exports.getNewPassword = (req, res, next) => {
   User.findOne({
     resetToken: token,
     resetTokenExpiration: { $gt: Date.now() },
-  }).then(user => {
-    if (!user) {
-      throw new Error('Reset link is expired');
-    }
+  })
+    .then(user => {
+      if (!user) {
+        throw new Error('Reset link is expired');
+      }
 
-    let message = req.flash('error');
-    if (message.length > 0) {
-      message = message[0];
-    } else {
-      message = null;
-    }
+      let message = req.flash('error');
+      if (message.length > 0) {
+        message = message[0];
+      } else {
+        message = null;
+      }
 
-    res.render('auth/new-password', {
-      path: '/new-password',
-      pageTitle: 'New Password',
-      errorMessage: null,
-      userId: user._id.toString(),
-      passwordToken: token,
+      res.render('auth/new-password', {
+        path: '/new-password',
+        pageTitle: 'New Password',
+        errorMessage: null,
+        userId: user._id.toString(),
+        passwordToken: token,
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.render('auth/new-password', {
+        path: '/new-password',
+        pageTitle: 'New Password',
+        errorMessage: err.message,
+        userId: 0,
+        passwordToken: 0,
+      });
     });
-  }).catch(err => {
-    console.log(err);
-    res.render('auth/new-password', {
-      path: '/new-password',
-      pageTitle: 'New Password',
-      errorMessage: err.message,
-      userId: 0,
-      passwordToken: 0,
-    });
-  });
 };
 
 exports.postNewPassword = (req, res, next) => {
@@ -237,24 +232,28 @@ exports.postNewPassword = (req, res, next) => {
     resetToken: passwordToken,
     resetTokenExpiration: { $gt: Date.now() },
     _id: userId,
-  }).then(dbUser => {
-    if (!dbUser) {
-      throw new Error('Reset link is expired');
-    }
+  })
+    .then(dbUser => {
+      if (!dbUser) {
+        throw new Error('Reset link is expired');
+      }
 
-    user = dbUser;
+      user = dbUser;
 
-    return bcrypt.hash(newPassword, 12);
-  }).then(hashedPassword => {
-    user.password = hashedPassword;
-    user.resetToken = undefined;
-    user.resetTokenExpiration = undefined;
-    return user.save();
-  }).then(result => {
-    res.redirect('/login');
-  }).catch(err => {
-    console.log(err);
-    req.flash('error', err.message);
-    res.redirect(`/reset/${passwordToken}`);
-  });
+      return bcrypt.hash(newPassword, 12);
+    })
+    .then(hashedPassword => {
+      user.password = hashedPassword;
+      user.resetToken = undefined;
+      user.resetTokenExpiration = undefined;
+      return user.save();
+    })
+    .then(result => {
+      res.redirect('/login');
+    })
+    .catch(err => {
+      console.log(err);
+      req.flash('error', err.message);
+      res.redirect(`/reset/${passwordToken}`);
+    });
 };
