@@ -1,4 +1,5 @@
 const express = require('express');
+const { body } = require('express-validator');
 
 const router = express.Router();
 
@@ -9,7 +10,17 @@ router.get('/products', isAuth, adminController.getProducts);
 
 router.get('/add-product', isAuth, adminController.getAddProduct);
 
-router.post('/add-product', isAuth, adminController.postAddProduct);
+router.post(
+  '/add-product',
+  isAuth,
+  [
+    body('title').trim().isString().isLength({ min: 3 }),
+    body('imgUrl').isURL(),
+    body('price').isFloat(),
+    body('description').trim().isLength({ min: 5, max: 400 }),
+  ],
+  adminController.postAddProduct
+);
 
 router.get('/edit-product/:productId', isAuth, adminController.getEditProduct);
 

@@ -1,3 +1,5 @@
+const { validationResult } = require('express-validator');
+
 const Product = require('../models/product');
 
 exports.getProducts = (req, res, next) => {
@@ -19,6 +21,8 @@ exports.getAddProduct = (req, res, next) => {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
+    hasError: false,
+    errorMessage: null,
   });
 };
 
@@ -28,6 +32,23 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
   const userId = req.user;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
+      editing: false,
+      hasError: true,
+      product: {
+        title,
+        imgUrl,
+        price,
+        description,
+      },
+      errorMessage: errors.array()[0].msg,
+    });
+  }
 
   const product = new Product({
     title,
@@ -67,6 +88,8 @@ exports.getEditProduct = (req, res, next) => {
         path: '/admin/products',
         editing: editMode,
         product,
+        hasError: false,
+        errorMessage: null,
       });
     })
     .catch(err => console.log(err));
@@ -81,11 +104,11 @@ exports.postEditProduct = (req, res, next) => {
 
   Product.findById(id)
     .then(product => {
-      if(!product) {
+      if (!product) {
         throw new Error('Product not found');
       }
 
-      if(product.userId.toString() !== req.user._id.toString()) {
+      if (product.userId.toString() !== req.user._id.toString()) {
         throw new Error('Invalid action');
       }
 
