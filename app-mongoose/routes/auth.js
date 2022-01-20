@@ -17,11 +17,12 @@ router.get('/reset/:token', authController.getNewPassword);
 router.post(
   '/login',
   [
-    body('email').isEmail().withMessage('Invalid email'),
+    body('email').isEmail().withMessage('Invalid email').normalizeEmail(),
     body(
       'password',
       'Invalid password: Should have at least 5 characters with only numbers and text'
     )
+      .trim()
       .isLength({ min: 5 })
       .isAlphanumeric(),
   ],
@@ -45,19 +46,23 @@ router.post(
             return Promise.reject('User already exists');
           }
         });
-      }),
+      })
+      .normalizeEmail(),
     body(
       'password',
       'Invalid password: Should have at least 5 characters with only numbers and text'
     )
+      .trim()
       .isLength({ min: 5 })
       .isAlphanumeric(),
-    body('confirmPassword').custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw new Error('Passwords have to match');
-      }
-      return true;
-    }),
+    body('confirmPassword')
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error('Passwords have to match');
+        }
+        return true;
+      }),
   ],
   authController.postSignup
 );
