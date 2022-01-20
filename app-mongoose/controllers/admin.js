@@ -82,11 +82,11 @@ exports.postEditProduct = (req, res, next) => {
   Product.findById(id)
     .then(product => {
       if(!product) {
-        throw Error('Product not found');
+        throw new Error('Product not found');
       }
 
       if(product.userId.toString() !== req.user._id.toString()) {
-        throw Error('Invalid action');
+        throw new Error('Invalid action');
       }
 
       product.title = title;

@@ -56,7 +56,7 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then(dbUser => {
       if (!dbUser) {
-        throw Error('User not found');
+        throw new Error('User not found');
       }
 
       user = dbUser;
@@ -65,7 +65,7 @@ exports.postLogin = (req, res, next) => {
     })
     .then(result => {
       if (!result) {
-        throw Error('Invalid password');
+        throw new Error('Invalid password');
       }
 
       req.session.isLoggedIn = true;
@@ -98,11 +98,11 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then(userDoc => {
       if (userDoc) {
-        throw Error('User already exists');
+        throw new Error('User already exists');
       }
 
       if (password !== confirmPassword) {
-        throw Error('Confirm password and password are different');
+        throw new Error('Confirm password and password are different');
       }
 
       return bcrypt.hash(password, 12);
