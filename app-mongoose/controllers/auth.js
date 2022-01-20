@@ -45,6 +45,7 @@ exports.getSignup = (req, res, next) => {
     pageTitle: 'Signup',
     errorMessage: message,
     oldInput: null,
+    validationErrors: [],
   });
 };
 
@@ -107,6 +108,7 @@ exports.postSignup = (req, res, next) => {
         password,
         confirmPassword: req.body.confirmPassword,
       },
+      validationErrors: errors.array(),
     });
   }
 
