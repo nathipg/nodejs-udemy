@@ -29,6 +29,8 @@ exports.getLogin = (req, res, next) => {
     path: '/login',
     pageTitle: 'Login',
     errorMessage: message,
+    oldInput: null,
+    validationErrors: [],
   });
 };
 
@@ -62,13 +64,18 @@ exports.postLogin = (req, res, next) => {
       path: '/login',
       pageTitle: 'Login',
       errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email,
+        password,
+      },
+      validationErrors: errors.array(),
     });
   }
 
   User.findOne({ email: email })
     .then(dbUser => {
       if (!dbUser) {
-        throw new Error('User not found');
+        throw new Error('Invalid email or password');
       }
 
       user = dbUser;
@@ -77,7 +84,7 @@ exports.postLogin = (req, res, next) => {
     })
     .then(result => {
       if (!result) {
-        throw new Error('Invalid password');
+        throw new Error('Invalid email or password');
       }
 
       req.session.isLoggedIn = true;
@@ -88,8 +95,23 @@ exports.postLogin = (req, res, next) => {
     })
     .catch(err => {
       console.log(err);
-      req.flash('error', err.message);
-      res.redirect('/login');
+      return res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: err.message,
+        oldInput: {
+          email,
+          password,
+        },
+        validationErrors: [
+          {
+            param: 'email',
+          },
+          {
+            param: 'password',
+          },
+        ],
+      });
     });
 };
 
