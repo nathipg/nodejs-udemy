@@ -14,7 +14,19 @@ router.get('/reset', authController.getReset);
 
 router.get('/reset/:token', authController.getNewPassword);
 
-router.post('/login', authController.postLogin);
+router.post(
+  '/login',
+  [
+    body('email').isEmail().withMessage('Invalid email'),
+    body(
+      'password',
+      'Invalid password: Should have at least 5 characters with only numbers and text'
+    )
+      .isLength({ min: 5 })
+      .isAlphanumeric(),
+  ],
+  authController.postLogin
+);
 
 router.post(
   '/signup',
