@@ -33,7 +33,7 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
-  const imgUrl = req.body.imgUrl;
+  const imgUrl = req.body.img;
   const price = req.body.price;
   const description = req.body.description;
   const userId = req.user;
