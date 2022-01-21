@@ -42,6 +42,12 @@ app.use(csrfProtection);
 app.use(flash());
 
 app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
+app.use((req, res, next) => {
   if (!req.session.user) {
     return next();
   }
@@ -55,14 +61,10 @@ app.use((req, res, next) => {
       next();
     })
     .catch(err => {
-      throw new Error(err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
-});
-
-app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
 });
 
 app.use('/admin', adminRoutes);
@@ -72,7 +74,10 @@ app.use(errorRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
-  res.redirect('/500');
+  res.status(500).render('500', {
+    pageTitle: 'Some error occured',
+    path: '/500',
+  });
 });
 
 mongoose
