@@ -63,8 +63,7 @@ exports.postAddProduct = (req, res, next) => {
   product
     .save()
     .then(result => {
-      throw new Error('asdasd');
-      // res.redirect('/admin/products');
+      res.redirect('/admin/products');
     })
     .catch(err => {
       // return res.status(500).render('admin/edit-product', {
