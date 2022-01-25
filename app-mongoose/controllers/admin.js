@@ -33,11 +33,27 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
-  const imgUrl = req.body.img;
+  const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
   const userId = req.user;
   const errors = validationResult(req);
+
+  if(!image) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
+      editing: false,
+      hasError: true,
+      product: {
+        title,
+        price,
+        description,
+      },
+      errorMessage: 'Attached file is not an image',
+      validationErrors: [],
+    });
+  }
 
   if (!errors.isEmpty()) {
     return res.status(422).render('admin/edit-product', {
@@ -47,7 +63,6 @@ exports.postAddProduct = (req, res, next) => {
       hasError: true,
       product: {
         title,
-        imgUrl,
         price,
         description,
       },
@@ -55,6 +70,8 @@ exports.postAddProduct = (req, res, next) => {
       validationErrors: errors.array(),
     });
   }
+
+  const imgUrl = image.path;
 
   const product = new Product({
     title,
@@ -125,7 +142,7 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
   const id = req.body.id;
   const title = req.body.title;
-  const imgUrl = req.body.imgUrl;
+  const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
   const errors = validationResult(req);
@@ -138,7 +155,6 @@ exports.postEditProduct = (req, res, next) => {
       hasError: true,
       product: {
         title,
-        imgUrl,
         price,
         description,
         _id: id,
@@ -159,9 +175,13 @@ exports.postEditProduct = (req, res, next) => {
       }
 
       product.title = title;
-      product.imgUrl = imgUrl;
       product.price = price;
       product.description = description;
+
+      if(image) {
+        product.imgUrl = image.path;
+      }
+      
       return product.save();
     })
     .then(result => {

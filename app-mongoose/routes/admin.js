@@ -28,7 +28,6 @@ router.post(
   isAuth,
   [
     body('title').trim().isString().isLength({ min: 3 }),
-    body('imgUrl').isURL(),
     body('price').isFloat(),
     body('description').trim().isLength({ min: 5, max: 400 }),
   ],
